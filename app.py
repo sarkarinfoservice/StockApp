@@ -17,7 +17,8 @@ col1, col2 = st.columns(2)
 with col1:
     exchange = st.selectbox("Exchange", ["NSE", "BSE"])
 with col2:
-    raw_symbol = st.text_input("Stock Symbol (e.g., RELIANCE)", value="ASTRAMICRO").strip().upper()
+    # Yahan value="ASTRAMICRO" ko hata kar value="" kar diya gaya hai
+    raw_symbol = st.text_input("Stock Symbol (e.g., RELIANCE)", value="").strip().upper()
 
 col3, col4 = st.columns(2)
 with col3:
