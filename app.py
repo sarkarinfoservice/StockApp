@@ -231,17 +231,27 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                         st.write(f"**Stop-Loss:** ₹{stop_loss:.2f}")
                         
                         with st.expander("💡 Iska kya matlab hai?"):
-                            st.info("Stop-Loss wo level hai jahan aapko bada loss rokne ke liye exit kar lena chahiye.")
+                            st.info("""
+                            **Buy Zone:** Safe range jahan tak stock ko buying ke liye consider kiya ja sakta hai.\n
+                            **Strong Buy:** Support level ke paas sasta price jahan risk sabse kam hota hai.\n
+                            **Stop-Loss:** Bada nuksan rokne ke liye is level par exit kar lena chahiye.
+                            """)
                         
                         st.markdown("### 🎯 Targets")
                         st.write(f"**Target 1 ({(t1-1)*100:.0f}%):** ₹{target_a:.2f}")
                         st.write(f"**Target 2 ({(t2-1)*100:.0f}%):** ₹{target_b:.2f}")
                         st.write(f"**Target 3 ({(t3-1)*100:.0f}%):** ₹{target_c:.2f}")
 
+                        with st.expander("💡 Target ka matlab?"):
+                            st.info("Kharidne ke baad in levels par aane par aap apna profit book (sell) kar sakte hain.")
+
                         st.markdown(f"### 🏆 {hl_label} Range")
                         st.write(f"**High:** ₹{period_high:.2f}")
                         st.write(f"**Low:** ₹{period_low:.2f}")
                         st.write(f"**Discount:** {discount_from_high:.1f}%")
+                        
+                        with st.expander("💡 Range ka matlab?"):
+                            st.info("Yeh batata hai ki stock apne pichle highest price se abhi kitna sasta (discounted) mil raha hai.")
 
                     with col_right:
                         st.markdown("### 📉 Technical Indicators")
@@ -251,17 +261,32 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                         st.write(f"**Support:** ₹{support:.2f}")
                         st.write(f"**Resistance:** ₹{resistance:.2f}")
                         
+                        with st.expander("💡 Technicals kya batate hain?"):
+                            macd_desc = "**MACD Bullish 🟢:** Buying momentum hai, stock upar ja sakta hai." if is_macd_bullish else "**MACD Bearish 🔴:** Selling pressure hai, stock niche gir sakta hai."
+                            st.info(f"""
+                            **RSI:** 70 ke upar gaya matlab stock mahenga (Overbought) hai. 30 ke niche gaya matlab sasta (Oversold) hai.\n
+                            {macd_desc}\n
+                            **Support:** Lower level jahan se price niche girna band hota hai.\n
+                            **Resistance:** Upper level jahan se price takra kar rukta hai.
+                            """)
+                        
                         st.markdown("### 📈 Moving Averages")
                         st.write(f"**{ma1} EMA:** ₹{ema1:.2f} | **{ma1} SMA:** ₹{sma1:.2f}")
                         st.write(f"**{ma2} EMA:** ₹{ema2:.2f} | **{ma2} SMA:** ₹{sma2:.2f}")
                         st.write(f"**{ma3} SMA:** ₹{sma3:.2f}")
                         
-                        with st.expander("💡 Averages Update"):
-                            st.info(f"Is mode mein system automatically {ma1}, {ma2}, aur {ma3} period ke averages use kar raha hai taaki analysis ekdum accurate rahe.")
+                        with st.expander("💡 Averages ka kya kaam hai?"):
+                            st.info(f"Is mode mein system automatically {ma1}, {ma2}, aur {ma3} period ke averages use kar raha hai. Current price agar Averages ke UPAR ho, toh stock strong Uptrend mein maana jata hai.")
 
                         st.markdown("### 🌀 Bollinger Bands")
                         st.write(f"**Upper Band:** ₹{bb_upper:.2f}")
                         st.write(f"**Lower Band:** ₹{bb_lower:.2f}")
+                        
+                        with st.expander("💡 Bollinger Bands ka matlab?"):
+                            st.info("""
+                            **Lower Band:** Price iske paas ho toh stock bahut sasta (Oversold) hai.\n
+                            **Upper Band:** Price iske paas ho toh stock mahenga (Overbought) hai.
+                            """)
 
                     if investment > 0 and purchase_price == 0:
                         st.divider()
