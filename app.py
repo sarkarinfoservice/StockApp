@@ -42,10 +42,15 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                     close = df['Close']
                     current_price = float(close.iloc[-1])
                     
+                    # DMA (Simple Moving Averages)
                     dma20 = float(close.rolling(20).mean().iloc[-1])
                     dma50 = float(close.rolling(50).mean().iloc[-1])
                     dma100 = float(close.rolling(100).mean().iloc[-1])
                     dma200 = float(close.rolling(200).mean().iloc[-1])
+                    
+                    # EMA (Exponential Moving Averages) - NEW ADDITION
+                    ema20 = float(close.ewm(span=20, adjust=False).mean().iloc[-1])
+                    ema50 = float(close.ewm(span=50, adjust=False).mean().iloc[-1])
 
                     delta = close.diff()
                     gain = delta.clip(lower=0).ewm(com=13, adjust=False).mean()
@@ -110,13 +115,14 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                     with col_right:
                         st.markdown("### 📉 Technicals")
                         st.write(f"**RSI (14):** {rsi:.2f}")
-                        st.write(f"**MACD:** {'Bullish' if current_macd > current_signal else 'Bearish'}")
+                        st.write(f"**MACD:** {'Bullish 🟢' if current_macd > current_signal else 'Bearish 🔴'}")
                         st.write(f"**Support:** ₹{support:.2f}")
                         st.write(f"**Resistance:** ₹{resistance:.2f}")
                         
                         st.markdown("### 📈 Moving Averages")
-                        st.write(f"**20 DMA:** ₹{dma20:.2f}")
-                        st.write(f"**50 DMA:** ₹{dma50:.2f}")
+                        # Here EMA is added with DMA for comparison
+                        st.write(f"**20 EMA:** ₹{ema20:.2f} | **20 DMA:** ₹{dma20:.2f}")
+                        st.write(f"**50 EMA:** ₹{ema50:.2f} | **50 DMA:** ₹{dma50:.2f}")
                         st.write(f"**200 DMA:** ₹{dma200:.2f}")
 
                     if investment > 0:
