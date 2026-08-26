@@ -10,17 +10,20 @@ st.title("📈 Pro Stock Technical Analyzer (Ultimate Edition)")
 st.markdown("Advanced Technical Analysis, Buy/Sell Signals, Portfolio Tracker & Beginner Guide.")
 
 # --- USER INPUTS ---
+trading_style = st.selectbox("Trading Style Select Karein:", 
+                             ["Swing (Weeks to Months)", "Intraday (1-2 Days)", "Long Term (1-5 Years)"])
+
 col1, col2 = st.columns(2)
 with col1:
     exchange = st.selectbox("Exchange", ["NSE", "BSE"])
 with col2:
-    raw_symbol = st.text_input("Stock Symbol (e.g., RELIANCE, TATAMOTORS)", value="ASTRAMICRO").strip().upper()
+    raw_symbol = st.text_input("Stock Symbol (e.g., RELIANCE)", value="ASTRAMICRO").strip().upper()
 
 col3, col4 = st.columns(2)
 with col3:
     investment = st.number_input("New Investment Amount (₹) [Optional]", min_value=0.0, value=0.0, step=1000.0)
 with col4:
-    purchase_price = st.number_input("Apna Buy Price Dalein (₹) [Optional]", min_value=0.0, value=0.0, step=10.0, help="Agar aapne ye stock pehle se kharida hai toh apna price dalein.")
+    purchase_price = st.number_input("Apna Buy Price Dalein (₹) [Optional]", min_value=0.0, value=0.0, step=10.0)
 
 if st.button("🚀 Analyze Stock", use_container_width=True):
     if not raw_symbol:
@@ -31,10 +34,36 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
         if not symbol.endswith(".NS") and not symbol.endswith(".BO"):
             symbol += ".NS" if exchange == "NSE" else ".BO"
 
-        with st.spinner(f"Fetching complete technical data for {symbol}..."):
+        # --- DYNAMIC SETTINGS BASED ON TRADING STYLE ---
+        if trading_style == "Intraday (1-2 Days)":
+            dl_period, dl_interval = "5d", "15m"
+            ma1, ma2, ma3 = 9, 21, 50
+            t1, t2, t3 = 1.01, 1.02, 1.03  # 1%, 2%, 3% Targets
+            sl_pct = 0.99  # 1% Stoploss
+            tf_label = "15-Min"
+            supp_window = 20
+            hl_label = "5-Day"
+        elif trading_style == "Long Term (1-5 Years)":
+            dl_period, dl_interval = "5y", "1wk"
+            ma1, ma2, ma3 = 20, 50, 200
+            t1, t2, t3 = 1.50, 2.00, 3.00  # 50%, 100%, 200% Targets
+            sl_pct = 0.85  # 15% Stoploss
+            tf_label = "Weekly"
+            supp_window = 52
+            hl_label = "5-Year"
+        else:  # Swing (Default)
+            dl_period, dl_interval = "1y", "1d"
+            ma1, ma2, ma3 = 20, 50, 200
+            t1, t2, t3 = 1.10, 1.15, 1.20  # 10%, 15%, 20% Targets
+            sl_pct = 0.95  # 5% Stoploss
+            tf_label = "Daily"
+            supp_window = 30
+            hl_label = "52-Week"
+
+        with st.spinner(f"Fetching {tf_label} data for {symbol}..."):
             try:
-                # Fetch 1 year of data
-                df = yf.download(symbol, period="1y", progress=False)
+                # Fetch Data dynamically
+                df = yf.download(symbol, period=dl_period, interval=dl_interval, progress=False)
                 
                 if df.empty:
                     st.error("❌ Data nahi mila. Symbol aur Exchange check karein.")
@@ -46,14 +75,13 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                     close = df['Close']
                     current_price = float(close.iloc[-1])
                     
-                    # Moving Averages (DMA & EMA)
-                    dma20 = float(close.rolling(20).mean().iloc[-1])
-                    dma50 = float(close.rolling(50).mean().iloc[-1])
-                    dma100 = float(close.rolling(100).mean().iloc[-1])
-                    dma200 = float(close.rolling(200).mean().iloc[-1])
+                    # Moving Averages (Dynamic)
+                    sma1 = float(close.rolling(ma1).mean().iloc[-1]) if len(close) >= ma1 else current_price
+                    sma2 = float(close.rolling(ma2).mean().iloc[-1]) if len(close) >= ma2 else current_price
+                    sma3 = float(close.rolling(ma3).mean().iloc[-1]) if len(close) >= ma3 else current_price
                     
-                    ema20 = float(close.ewm(span=20, adjust=False).mean().iloc[-1])
-                    ema50 = float(close.ewm(span=50, adjust=False).mean().iloc[-1])
+                    ema1 = float(close.ewm(span=ma1, adjust=False).mean().iloc[-1])
+                    ema2 = float(close.ewm(span=ma2, adjust=False).mean().iloc[-1])
 
                     # RSI Calculation
                     delta = close.diff()
@@ -62,7 +90,6 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                     rs = gain / loss
                     rsi = float((100 - (100 / (1 + rs))).iloc[-1])
                     
-                    # RSI Status
                     if rsi > 70:
                         rsi_status = "Overbought 🔴"
                     elif rsi < 30:
@@ -79,52 +106,52 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                     current_signal = float(macd_signal.iloc[-1])
                     is_macd_bullish = current_macd > current_signal
 
-                    # Support & Resistance (30 Days)
-                    recent_30 = df.tail(30)
-                    support = float(recent_30['Low'].min())
-                    resistance = float(recent_30['High'].max())
+                    # Support & Resistance (Dynamic Window)
+                    recent_data = df.tail(supp_window)
+                    support = float(recent_data['Low'].min())
+                    resistance = float(recent_data['High'].max())
 
                     # --- 2. ADVANCED CALCULATIONS ---
                     # Volume Analysis
                     volume = df['Volume']
                     current_volume = float(volume.iloc[-1])
-                    avg_volume_20 = float(volume.rolling(20).mean().iloc[-1])
-                    volume_ratio = (current_volume / avg_volume_20) if avg_volume_20 > 0 else 1.0
-                    is_high_volume = volume_ratio >= 1.3  # 30% or more volume than 20-day average
+                    avg_volume = float(volume.rolling(ma1).mean().iloc[-1])
+                    volume_ratio = (current_volume / avg_volume) if avg_volume > 0 else 1.0
+                    is_high_volume = volume_ratio >= 1.3 
 
-                    # Bollinger Bands (20-period, 2 std dev)
-                    bb_middle = dma20
-                    std_20 = float(close.rolling(20).std().iloc[-1])
+                    # Bollinger Bands (20-period)
+                    bb_middle = float(close.rolling(20).mean().iloc[-1]) if len(close) >= 20 else current_price
+                    std_20 = float(close.rolling(20).std().iloc[-1]) if len(close) >= 20 else 0
                     bb_upper = bb_middle + (2 * std_20)
                     bb_lower = bb_middle - (2 * std_20)
 
-                    # 52-Week High / Low
-                    high_52w = float(df['High'].max())
-                    low_52w = float(df['Low'].min())
-                    discount_from_high = ((high_52w - current_price) / high_52w) * 100
+                    # High / Low Range
+                    period_high = float(df['High'].max())
+                    period_low = float(df['Low'].min())
+                    discount_from_high = ((period_high - current_price) / period_high) * 100
 
-                    # Targets & Levels
-                    buy_zone = current_price * 0.98
-                    strong_buy = support if support < current_price else current_price * 0.95
-                    stop_loss = support * 0.97
+                    # Dynamic Targets & Levels
+                    buy_zone = current_price * 0.99
+                    strong_buy = support if support < current_price else current_price * sl_pct
+                    stop_loss = support * 0.99
                     
-                    target_10 = current_price * 1.10
-                    target_15 = current_price * 1.15
-                    target_20 = current_price * 1.20
+                    target_a = current_price * t1
+                    target_b = current_price * t2
+                    target_c = current_price * t3
 
                     # --- 3. TREND LOGIC ---
-                    if current_price > dma50 and dma50 > dma200:
+                    if current_price > sma2 and sma2 > sma3:
                         trend_status = "UPTREND 📈"
-                        trend_reason = "Price 50 DMA ke upar hai aur 50 DMA 200 DMA ke upar chal raha hai."
-                    elif current_price < dma50 and dma50 < dma200:
+                        trend_reason = f"Price {ma2} SMA ke upar hai aur trend positive hai."
+                    elif current_price < sma2 and sma2 < sma3:
                         trend_status = "DOWNTREND 📉"
-                        trend_reason = "Price lagatar 50 aur 200 DMA ke niche trade kar raha hai."
+                        trend_reason = f"Price {ma2} aur {ma3} SMA ke niche trade kar raha hai."
                     else:
                         trend_status = "SIDEWAYS ↔️"
                         trend_reason = "Price range bound hai (na clear upar na niche)."
 
                     # --- 4. FRESH BUY SIGNAL LOGIC ---
-                    is_ema_bullish = ema20 > ema50
+                    is_ema_bullish = ema1 > ema2
                     
                     if "UPTREND" in trend_status and is_ema_bullish and is_macd_bullish and (40 <= rsi <= 70):
                         if is_high_volume:
@@ -138,24 +165,22 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                     elif rsi < 35 or current_price <= bb_lower:
                         signal_box = st.info
                         signal_title = "🟡 ACCUMULATE: OVERSOLD / BOTTOM ZONE"
-                        signal_msg = f"Stock lower Bollinger band ya RSI oversold zone ke paas hai. Support pe chhote quantity me accumulation kar sakte hain."
+                        signal_msg = f"Stock lower band ya RSI oversold zone ke paas hai. Support pe accumulate kar sakte hain."
                     elif current_price >= bb_upper or rsi > 70:
                         signal_box = st.warning
                         signal_title = "🔴 WAIT: OVERBOUGHT ZONE"
-                        signal_msg = f"Stock Upper Bollinger Band ke paas hai aur RSI high hai. Fresh buy mat karein, dip ka wait karein."
+                        signal_msg = f"Stock Upper Band ke paas hai aur RSI high hai. Fresh buy mat karein, dip ka wait karein."
                     else:
                         signal_box = st.error
                         signal_title = "🔴 AVOID / WAIT: NO SIGNAL"
                         signal_msg = f"{trend_reason} Abhi koi clear buy signal nahi hai."
 
                     # --- 5. UI DISPLAY START ---
-                    st.subheader(f"Results for {symbol}")
+                    st.subheader(f"Results for {symbol} ({trading_style})")
                     
-                    # Display Signal Box (If user has NOT bought yet)
                     if purchase_price == 0:
                         signal_box(f"**{signal_title}**\n\n{signal_msg}")
                     
-                    # Portfolio Status Box (If user HAS bought)
                     if purchase_price > 0:
                         pnl_percent = ((current_price - purchase_price) / purchase_price) * 100
                         pnl_amount = current_price - purchase_price
@@ -170,10 +195,10 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                             hs_box = st.error
                             hs_title = "🔴 SELL (Stop-Loss Hit)"
                             hs_msg = "Stock buy price aur major support se niche chala gaya hai. Loss cut karna safe hoga."
-                        elif pnl_percent >= 10 and (rsi > 70 or current_price >= bb_upper):
+                        elif pnl_percent >= ((t1-1)*100) and (rsi > 70 or current_price >= bb_upper):
                             hs_box = st.success
                             hs_title = "🟢 BOOK PROFIT (Sell)"
-                            hs_msg = f"Aapko +{pnl_percent:.1f}% ka profit ho raha hai aur stock Overbought zone mein hai. Partial/Full profit book kar sakte hain."
+                            hs_msg = f"Aapko Target hit ho gaya hai aur stock Overbought hai. Profit book kar sakte hain."
                         elif "DOWNTREND" in trend_status:
                             hs_box = st.warning
                             hs_title = "🔴 SELL (Trend Weak)"
@@ -181,13 +206,12 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                         else:
                             hs_box = st.info
                             hs_title = "🟡 HOLD"
-                            hs_msg = "Technical indicators abhi safe hain. Target 1 tak hold rakh sakte hain."
+                            hs_msg = "Technical indicators abhi safe hain. Target tak hold rakh sakte hain."
                             
                         hs_box(f"**Action:** {hs_title}\n\n**Reason:** {hs_msg}")
 
                     st.divider()
                     
-                    # Top Metrics (Now in 2 rows for mobile friendliness)
                     m1, m2 = st.columns(2)
                     m1.metric("Current Price", f"₹{current_price:.2f}")
                     m2.metric("Trend", trend_status.replace("📈", "").replace("📉", "").replace("↔️", ""))
@@ -201,83 +225,50 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                     col_left, col_right = st.columns(2)
                     
                     with col_left:
-                        st.markdown("### 📊 Action Zones")
+                        st.markdown(f"### 📊 Action Zones ({tf_label})")
                         st.write(f"**Buy Zone:** ₹{buy_zone:.2f} - ₹{current_price:.2f}")
                         st.write(f"**Strong Buy:** ₹{strong_buy:.2f}")
                         st.write(f"**Stop-Loss:** ₹{stop_loss:.2f}")
                         
                         with st.expander("💡 Iska kya matlab hai?"):
-                            st.info("""
-                            **Buy Zone:** Safe range jahan tak stock ko buying ke liye consider kiya ja sakta hai.\n
-                            **Strong Buy:** Support level ke paas sasta price jahan risk sabse kam hota hai.\n
-                            **Stop-Loss:** Bada nuksan rokne ke liye auto-exit point.
-                            """)
+                            st.info("Stop-Loss wo level hai jahan aapko bada loss rokne ke liye exit kar lena chahiye.")
                         
                         st.markdown("### 🎯 Targets")
-                        st.write(f"**Target 1 (10%):** ₹{target_10:.2f}")
-                        st.write(f"**Target 2 (15%):** ₹{target_15:.2f}")
-                        st.write(f"**Target 3 (20%):** ₹{target_20:.2f}")
-                        
-                        with st.expander("💡 Target ka matlab?"):
-                            st.info("Kharidne ke baad in levels par aane par aap apna profit book kar sakte hain.")
+                        st.write(f"**Target 1 ({(t1-1)*100:.0f}%):** ₹{target_a:.2f}")
+                        st.write(f"**Target 2 ({(t2-1)*100:.0f}%):** ₹{target_b:.2f}")
+                        st.write(f"**Target 3 ({(t3-1)*100:.0f}%):** ₹{target_c:.2f}")
 
-                        st.markdown("### 🏆 52-Week Range")
-                        st.write(f"**52-W High:** ₹{high_52w:.2f}")
-                        st.write(f"**52-W Low:** ₹{low_52w:.2f}")
+                        st.markdown(f"### 🏆 {hl_label} Range")
+                        st.write(f"**High:** ₹{period_high:.2f}")
+                        st.write(f"**Low:** ₹{period_low:.2f}")
                         st.write(f"**Discount:** {discount_from_high:.1f}%")
-
-                        with st.expander("💡 52-Week High/Low ka matlab?"):
-                            st.info("Yeh batata hai ki stock apne 1 saal ke highest price se kitna sasta (discounted) mil raha hai.")
 
                     with col_right:
                         st.markdown("### 📉 Technical Indicators")
-                        # RSI is back here!
                         st.write(f"**RSI (14):** {rsi:.1f} ({rsi_status})")
-                        
                         macd_status = "Bullish 🟢" if is_macd_bullish else "Bearish 🔴"
                         st.write(f"**MACD:** {macd_status}")
                         st.write(f"**Support:** ₹{support:.2f}")
                         st.write(f"**Resistance:** ₹{resistance:.2f}")
                         
-                        with st.expander("💡 Technicals kya batate hain?"):
-                            if is_macd_bullish:
-                                macd_desc = "**MACD Bullish 🟢:** Buying momentum hai, stock upar ja sakta hai."
-                            else:
-                                macd_desc = "**MACD Bearish 🔴:** Selling pressure hai, stock niche gir sakta hai."
-                                
-                            st.info(f"""
-                            **RSI:** 70 ke upar gaya matlab stock mahenga (Overbought) hai. 30 ke niche gaya matlab sasta (Oversold) hai.\n
-                            {macd_desc}\n
-                            **Support:** Lower level jahan se price niche girna band hota hai.\n
-                            **Resistance:** Upper level jahan se price takra kar rukta hai.
-                            """)
-                        
                         st.markdown("### 📈 Moving Averages")
-                        st.write(f"**20 EMA:** ₹{ema20:.2f} | **20 DMA:** ₹{dma20:.2f}")
-                        st.write(f"**50 EMA:** ₹{ema50:.2f} | **50 DMA:** ₹{dma50:.2f}")
-                        st.write(f"**200 DMA:** ₹{dma200:.2f}")
+                        st.write(f"**{ma1} EMA:** ₹{ema1:.2f} | **{ma1} SMA:** ₹{sma1:.2f}")
+                        st.write(f"**{ma2} EMA:** ₹{ema2:.2f} | **{ma2} SMA:** ₹{sma2:.2f}")
+                        st.write(f"**{ma3} SMA:** ₹{sma3:.2f}")
                         
-                        with st.expander("💡 Averages ka kya kaam hai?"):
-                            st.info("Current price agar Moving Averages ke UPAR ho, toh stock strong Uptrend mein maana jata hai.")
+                        with st.expander("💡 Averages Update"):
+                            st.info(f"Is mode mein system automatically {ma1}, {ma2}, aur {ma3} period ke averages use kar raha hai taaki analysis ekdum accurate rahe.")
 
-                        st.markdown("### 🌀 Bollinger Bands & Volume")
-                        st.write(f"**BB Upper Band:** ₹{bb_upper:.2f}")
-                        st.write(f"**BB Lower Band:** ₹{bb_lower:.2f}")
-                        st.write(f"**Volume Status:** {'High 🚀' if is_high_volume else 'Normal ⚖️'}")
-
-                        with st.expander("💡 Bollinger & Volume ka matlab?"):
-                            st.info("""
-                            **BB Lower Band:** Price iske paas ho toh stock bahut sasta (Oversold) hai.\n
-                            **BB Upper Band:** Price iske paas ho toh stock mahenga (Overbought) hai.\n
-                            **Volume:** High volume ka matlab bade investors (FIIs/DIIs) active hain.
-                            """)
+                        st.markdown("### 🌀 Bollinger Bands")
+                        st.write(f"**Upper Band:** ₹{bb_upper:.2f}")
+                        st.write(f"**Lower Band:** ₹{bb_lower:.2f}")
 
                     if investment > 0 and purchase_price == 0:
                         st.divider()
                         shares = int(investment // current_price)
                         actual_inv = shares * current_price
                         st.markdown("### 💰 Investment Plan")
-                        st.success(f"Capital: **₹{investment:.2f}** | Shares: **{shares}** | Amount Used: **₹{actual_inv:.2f}** | Exp. Profit (Target 1): **₹{(target_10 - current_price) * shares:.2f}**")
+                        st.success(f"Capital: **₹{investment:.2f}** | Shares: **{shares}** | Used: **₹{actual_inv:.2f}** | Exp. Profit (T1): **₹{(target_a - current_price) * shares:.2f}**")
 
             except Exception as e:
                 st.error(f"Error aayi: {e}")
