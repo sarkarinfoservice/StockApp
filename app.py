@@ -61,6 +61,14 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                     loss = (-1 * delta.clip(upper=0)).ewm(com=13, adjust=False).mean()
                     rs = gain / loss
                     rsi = float((100 - (100 / (1 + rs))).iloc[-1])
+                    
+                    # RSI Status
+                    if rsi > 70:
+                        rsi_status = "Overbought 🔴"
+                    elif rsi < 30:
+                        rsi_status = "Oversold 🟢"
+                    else:
+                        rsi_status = "Neutral 🟡"
 
                     # MACD Calculation
                     ema12 = close.ewm(span=12, adjust=False).mean()
@@ -179,10 +187,12 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
 
                     st.divider()
                     
-                    # Top Metrics
-                    m1, m2, m3, m4 = st.columns(4)
+                    # Top Metrics (Now in 2 rows for mobile friendliness)
+                    m1, m2 = st.columns(2)
                     m1.metric("Current Price", f"₹{current_price:.2f}")
                     m2.metric("Trend", trend_status.replace("📈", "").replace("📉", "").replace("↔️", ""))
+                    
+                    m3, m4 = st.columns(2)
                     m3.metric("RSI (14)", f"{rsi:.1f}")
                     m4.metric("Volume Vs Avg", f"{volume_ratio:.1f}x")
 
@@ -214,13 +224,16 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                         st.markdown("### 🏆 52-Week Range")
                         st.write(f"**52-W High:** ₹{high_52w:.2f}")
                         st.write(f"**52-W Low:** ₹{low_52w:.2f}")
-                        st.write(f"**Discount from High:** {discount_from_high:.1f}%")
+                        st.write(f"**Discount:** {discount_from_high:.1f}%")
 
                         with st.expander("💡 52-Week High/Low ka matlab?"):
                             st.info("Yeh batata hai ki stock apne 1 saal ke highest price se kitna sasta (discounted) mil raha hai.")
 
                     with col_right:
                         st.markdown("### 📉 Technical Indicators")
+                        # RSI is back here!
+                        st.write(f"**RSI (14):** {rsi:.1f} ({rsi_status})")
+                        
                         macd_status = "Bullish 🟢" if is_macd_bullish else "Bearish 🔴"
                         st.write(f"**MACD:** {macd_status}")
                         st.write(f"**Support:** ₹{support:.2f}")
@@ -233,6 +246,7 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                                 macd_desc = "**MACD Bearish 🔴:** Selling pressure hai, stock niche gir sakta hai."
                                 
                             st.info(f"""
+                            **RSI:** 70 ke upar gaya matlab stock mahenga (Overbought) hai. 30 ke niche gaya matlab sasta (Oversold) hai.\n
                             {macd_desc}\n
                             **Support:** Lower level jahan se price niche girna band hota hai.\n
                             **Resistance:** Upper level jahan se price takra kar rukta hai.
@@ -249,7 +263,7 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                         st.markdown("### 🌀 Bollinger Bands & Volume")
                         st.write(f"**BB Upper Band:** ₹{bb_upper:.2f}")
                         st.write(f"**BB Lower Band:** ₹{bb_lower:.2f}")
-                        st.write(f"**Volume Status:** {'High Volume 🚀' if is_high_volume else 'Normal Volume ⚖️'}")
+                        st.write(f"**Volume Status:** {'High 🚀' if is_high_volume else 'Normal ⚖️'}")
 
                         with st.expander("💡 Bollinger & Volume ka matlab?"):
                             st.info("""
