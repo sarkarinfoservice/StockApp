@@ -166,7 +166,6 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                         st.write(f"**Strong Buy:** ₹{strong_buy:.2f}")
                         st.write(f"**Stop-Loss:** ₹{stop_loss:.2f}")
                         
-                        # Beginner Guide for Action Zones
                         with st.expander("💡 Iska kya matlab hai?"):
                             st.info("""
                             **Buy Zone:** Agar aapko kharidna hai, toh is range me kharidna safe rahega.\n
@@ -178,20 +177,25 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                         st.write(f"**Target 1 (10%):** ₹{target_10:.2f}")
                         st.write(f"**Target 2 (15%):** ₹{target_15:.2f}")
                         
-                        # Beginner Guide for Targets
                         with st.expander("💡 Target ka matlab?"):
                             st.info("Kharidne ke baad, jab price in levels par pahuche, toh aap apna hissa bech kar munafa (profit) kama sakte hain.")
 
                     with col_right:
                         st.markdown("### 📉 Technicals")
-                        st.write(f"**MACD:** {'Bullish 🟢' if current_macd > current_signal else 'Bearish 🔴'}")
+                        macd_status = "Bullish 🟢" if is_macd_bullish else "Bearish 🔴"
+                        st.write(f"**MACD:** {macd_status}")
                         st.write(f"**Support:** ₹{support:.2f}")
                         st.write(f"**Resistance:** ₹{resistance:.2f}")
                         
-                        # Beginner Guide for Technicals
                         with st.expander("💡 Technicals kya batate hain?"):
-                            st.info("""
-                            **MACD Bullish:** Matlab stock mein abhi taqat hai aur yeh upar ja sakta hai. (Bearish matlab kamzori).\n
+                            # Dynamic MACD Description
+                            if is_macd_bullish:
+                                macd_desc = "**MACD Bullish:** Matlab stock mein abhi taqat hai aur yeh upar ja sakta hai."
+                            else:
+                                macd_desc = "**MACD Bearish:** Matlab stock mein abhi kamzori hai aur yeh niche gir sakta hai."
+                                
+                            st.info(f"""
+                            {macd_desc}\n
                             **Support:** Wo level jahan se price lagatar niche girne se rukta hai aur wapas upar uchhalta hai.\n
                             **Resistance:** Wo rukawat jahan se price takra kar wapas niche aane lagta hai.
                             """)
@@ -200,7 +204,6 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                         st.write(f"**20 EMA:** ₹{ema20:.2f} | **20 DMA:** ₹{dma20:.2f}")
                         st.write(f"**50 EMA:** ₹{ema50:.2f} | **50 DMA:** ₹{dma50:.2f}")
                         
-                        # Beginner Guide for Averages
                         with st.expander("💡 Averages ka kya kaam hai?"):
                             st.info("Yeh pichle 20 ya 50 din ka average price bata raha hai. Asaan shabdon mein, agar abhi ka Current Price in Averages se UPAR hai, toh stock taqatwar (Uptrend) maana jata hai.")
 
@@ -215,4 +218,3 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                 st.error(f"Error aayi: {e}")
 
 st.caption("Disclaimer: Yeh tool sirf sikhne (educational purposes) ke liye hai. Invest karne se pehle apni research zaroor karein.")
-                          
