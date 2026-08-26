@@ -6,7 +6,7 @@ import numpy as np
 # Page configuration
 st.set_page_config(page_title="Pro Stock Technical Analyzer", page_icon="📈", layout="centered")
 
-st.title("📈 Pro Stock Technical Analyzer (Ultimate Edition)")
+st.title("📈 Pro Stock Technical Analyzer")
 st.markdown("Advanced Technical Analysis, Buy/Sell Signals, Portfolio Tracker & Beginner Guide.")
 
 # --- USER INPUTS ---
