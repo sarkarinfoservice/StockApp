@@ -42,13 +42,13 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                     close = df['Close']
                     current_price = float(close.iloc[-1])
                     
-                    # DMA (Simple Moving Averages)
+                    # DMA
                     dma20 = float(close.rolling(20).mean().iloc[-1])
                     dma50 = float(close.rolling(50).mean().iloc[-1])
                     dma100 = float(close.rolling(100).mean().iloc[-1])
                     dma200 = float(close.rolling(200).mean().iloc[-1])
                     
-                    # EMA (Exponential Moving Averages) - NEW ADDITION
+                    # EMA
                     ema20 = float(close.ewm(span=20, adjust=False).mean().iloc[-1])
                     ema50 = float(close.ewm(span=50, adjust=False).mean().iloc[-1])
 
@@ -79,23 +79,37 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
 
                     trend = "UPTREND 📈" if current_price > dma50 and dma50 > dma200 else ("DOWNTREND 📉" if current_price < dma50 and dma50 < dma200 else "SIDEWAYS ↔️")
                     
-                    verdict = "HOLD"
-                    if "UPTREND" in trend:
-                        if rsi < 30: verdict = "STRONG BUY 🟢"
-                        elif rsi < 70 and current_macd > current_signal: verdict = "BUY 🟢"
-                        elif rsi >= 70: verdict = "WAIT (Overbought) 🟡"
-                    elif "SIDEWAYS" in trend and rsi < 40:
-                        verdict = "ACCUMULATE 🟡"
+                    # --- BUY SIGNAL LOGIC ---
+                    is_ema_bullish = ema20 > ema50
+                    is_macd_bullish = current_macd > current_signal
+                    
+                    if is_ema_bullish and is_macd_bullish and (40 <= rsi <= 70):
+                        signal_box = st.success
+                        signal_title = "🟢 FRESH BUY SIGNAL GENERATED!"
+                        signal_msg = "Trend strong hai. EMA 20, EMA 50 ke upar hai aur MACD Bullish hai."
+                    elif rsi < 30:
+                        signal_box = st.info
+                        signal_title = "🟡 OVERSOLD - GOOD FOR ACCUMULATION"
+                        signal_msg = "Stock kafi gir chuka hai. Support ke paas thoda buy kar sakte hain."
+                    elif is_macd_bullish and rsi > 70:
+                        signal_box = st.warning
+                        signal_title = "🔴 WAIT! STOCK IS OVERBOUGHT"
+                        signal_msg = "Trend upar hai par stock thoda mahenga ho gaya hai. Dip ka wait karein."
                     else:
-                        verdict = "WAIT / AVOID 🔴"
+                        signal_box = st.error
+                        signal_title = "🔴 NO BUY SIGNAL YET"
+                        signal_msg = "Trend filhal weak hai ya sideway hai. Wait karein."
 
                     # --- UI DISPLAY ---
                     st.subheader(f"Results for {symbol}")
                     
+                    # Highlighted Signal Box
+                    signal_box(f"**{signal_title}**\n\n{signal_msg}")
+                    
                     m1, m2, m3 = st.columns(3)
                     m1.metric("Current Price", f"₹{current_price:.2f}")
                     m2.metric("Trend", trend.replace("📈", "").replace("📉", "").replace("↔️", ""))
-                    m3.metric("Verdict", verdict.split()[0])
+                    m3.metric("RSI", f"{rsi:.2f}")
 
                     st.divider()
 
@@ -114,13 +128,11 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
 
                     with col_right:
                         st.markdown("### 📉 Technicals")
-                        st.write(f"**RSI (14):** {rsi:.2f}")
                         st.write(f"**MACD:** {'Bullish 🟢' if current_macd > current_signal else 'Bearish 🔴'}")
                         st.write(f"**Support:** ₹{support:.2f}")
                         st.write(f"**Resistance:** ₹{resistance:.2f}")
                         
                         st.markdown("### 📈 Moving Averages")
-                        # Here EMA is added with DMA for comparison
                         st.write(f"**20 EMA:** ₹{ema20:.2f} | **20 DMA:** ₹{dma20:.2f}")
                         st.write(f"**50 EMA:** ₹{ema50:.2f} | **50 DMA:** ₹{dma50:.2f}")
                         st.write(f"**200 DMA:** ₹{dma200:.2f}")
