@@ -269,4 +269,4 @@ if st.button("📊 Analyze This Stock", use_container_width=True):
             except Exception as e:
                 st.error(f"Software me ek choti error aayi hai: {e}")
 
-st.caption("Disclaimer: Yeh tool sirf sikhne (educational purposes) ke liye hai.")
+st.caption("Disclaimer: Yeh tool sirf sikhne (Educational Purposes) ke liye hai. Investment se pehle apni research zaroor karein (Do your own research before investing.")
