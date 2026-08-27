@@ -8,21 +8,39 @@ st.set_page_config(page_title="Pro Stock Technical Analyzer", page_icon="📈", 
 st.title("📈 Pro Stock Technical Analyzer")
 st.markdown("Advanced Technical Analysis, Market Scanner, Buy/Sell Signals & Beginner Guide.")
 
-# --- SCANNER SECTION ---
+# ==========================================
+# 🔍 SMART MARKET SCANNER SECTION (ALL SECTORS)
+# ==========================================
 st.markdown("### 🔍 Smart Market Scanner")
+st.write("Janiye aaj sabhi sectors ke popular stocks mein kahan tezi (Uptrend) ban rahi hai.")
+
 if st.button("🚀 Find Trending Stocks", use_container_width=True):
+    # Comprehensive Multi-Sector Scan List (50 Stocks)
     scan_list = [
-        "RELIANCE.NS", "TATAMOTORS.NS", "SBIN.NS", "HDFCBANK.NS", "ZOMATO.NS", 
-        "IRFC.NS", "HAL.NS", "SUZLON.NS", "TCS.NS", "INFY.NS", "ITC.NS", 
-        "ICICIBANK.NS", "BHARTIARTL.NS", "BAJFINANCE.NS", "LT.NS", "M&M.NS", 
-        "NTPC.NS", "TATASTEEL.NS", "BHEL.NS", "BEL.NS", "ADANIPORTS.NS",
-        "ASIANPAINT.NS", "AXISBANK.NS", "BAJAJ-AUTO.NS", "CIPLA.NS", "COALINDIA.NS",
-        "EICHERMOT.NS", "HINDALCO.NS", "INDUSINDBK.NS", "KOTAKBANK.NS", "MARUTI.NS",
-        "ONGC.NS", "POWERGRID.NS", "SUNPHARMA.NS", "TATACONSUM.NS", "TITAN.NS",
-        "WIPRO.NS", "JIOFIN.NS", "DLF.NS", "TVSMOTOR.NS"
+        # --- IT Sector ---
+        "TCS.NS", "INFY.NS", "WIPRO.NS", "HCLTECH.NS", "TECHM.NS",
+        # --- Banking & Finance ---
+        "HDFCBANK.NS", "ICICIBANK.NS", "SBIN.NS", "AXISBANK.NS", "KOTAKBANK.NS", 
+        "INDUSINDBK.NS", "BAJFINANCE.NS", "JIOFIN.NS", "SBILIFE.NS", "CHOLAFIN.NS",
+        # --- Auto & Ancillaries ---
+        "TATAMOTORS.NS", "M&M.NS", "MARUTI.NS", "BAJAJ-AUTO.NS", "TVSMOTOR.NS", 
+        "EICHERMOT.NS", "HEROMOTOCO.NS",
+        # --- Pharma & Healthcare ---
+        "SUNPHARMA.NS", "CIPLA.NS", "DRREDDY.NS", "DIVISLAB.NS", "APOLLOHOSP.NS",
+        # --- Energy, Power & Oil ---
+        "RELIANCE.NS", "ONGC.NS", "POWERGRID.NS", "NTPC.NS", "BPCL.NS", "TATAPOWER.NS",
+        # --- FMCG & Consumption ---
+        "ITC.NS", "HINDUNILVR.NS", "NESTLEIND.NS", "BRITANNIA.NS", "TATACONSUM.NS", 
+        "TITAN.NS", "ASIANPAINT.NS", "ZOMATO.NS",
+        # --- Metals & Mining ---
+        "TATASTEEL.NS", "HINDALCO.NS", "JSWSTEEL.NS", "COALINDIA.NS",
+        # --- Infra, Defense, Railways & Capital Goods ---
+        "LT.NS", "ADANIPORTS.NS", "HAL.NS", "BEL.NS", "IRFC.NS", "SUZLON.NS", 
+        "BHEL.NS", "DLF.NS"
     ]
+    
     trending_stocks = []
-    my_bar = st.progress(0, text="Market scan shuru ho raha hai...")
+    my_bar = st.progress(0, text="Sabhi sectors ka scan shuru ho raha hai...")
     
     for i, stock in enumerate(scan_list):
         my_bar.progress((i + 1) / len(scan_list), text=f"Scanning {stock.replace('.NS', '')}...")
@@ -33,7 +51,7 @@ if st.button("🚀 Find Trending Stocks", use_container_width=True):
             if isinstance(df_scan.columns, pd.MultiIndex):
                 df_scan.columns = df_scan.columns.get_level_values(0)
             
-            # ✨ NaN Fix: Data Cleaner
+            # NaN Cleaner
             df_scan.dropna(subset=['Close', 'High', 'Low'], inplace=True)
             if df_scan.empty: continue
             
@@ -55,22 +73,30 @@ if st.button("🚀 Find Trending Stocks", use_container_width=True):
             macd = ema12 - ema26
             macd_sig = macd.ewm(span=9, adjust=False).mean()
             
+            # Smart Filter Conditions
             if (current_price > dma20) and (float(macd.iloc[-1]) > float(macd_sig.iloc[-1])) and (35 <= rsi <= 75):
-                trending_stocks.append({"Symbol": stock.replace(".NS", ""), "Price (₹)": round(current_price, 2), "RSI": round(rsi, 1), "Trend": "Bullish 🟢"})
+                trending_stocks.append({
+                    "Symbol": stock.replace(".NS", ""),
+                    "Price (₹)": round(current_price, 2),
+                    "RSI": round(rsi, 1),
+                    "Trend": "Bullish 🟢"
+                })
         except:
             pass
             
     my_bar.empty()
     if trending_stocks:
-        st.success(f"🎉 {len(trending_stocks)} Trending Stocks mile hain.")
+        st.success(f"🎉 Great! Sabhi sectors se milakar {len(trending_stocks)} Trending Stocks mile hain.")
         st.dataframe(pd.DataFrame(trending_stocks).set_index("Symbol"), use_container_width=True)
         st.info("💡 **PRO TIP:** Symbol copy karein aur niche paste karke poora analysis dekhein!")
     else:
-        st.warning("🔴 Koi clear buy signal nahi mila.")
+        st.warning("🔴 Abhi kisi bhi sector mein clear buy signal nahi mila.")
 
 st.divider()
 
-# --- MAIN ANALYZER SECTION ---
+# ==========================================
+# 📊 MAIN STOCK ANALYZER SECTION
+# ==========================================
 st.markdown("### 🔍 Full Stock Analysis")
 trading_style = st.selectbox("Trading Style Select Karein:", ["Swing (Weeks to Months)", "Intraday (Same Day) & BTST", "Long Term (1-5 Years)"])
 
@@ -110,16 +136,14 @@ if st.button("📊 Analyze This Stock", use_container_width=True):
                     if isinstance(df.columns, pd.MultiIndex): 
                         df.columns = df.columns.get_level_values(0)
                     
-                    # ✨ NaN Fix: Sabse zaroori line jo blank data hatayegi
                     df.dropna(subset=['Close', 'High', 'Low'], inplace=True)
                     
                     if df.empty:
-                        st.error("❌ Stock ka complete data nahi mil raha (Trading band ho sakti hai).")
+                        st.error("❌ Stock ka complete data nahi mil raha.")
                     else:
                         close = df['Close']
                         current_price = float(close.iloc[-1])
                         
-                        # Averages with NaN safety for new stocks
                         sma1_val = close.rolling(ma1).mean().iloc[-1]
                         sma1 = float(sma1_val) if not pd.isna(sma1_val) else current_price
                         
@@ -160,7 +184,6 @@ if st.button("📊 Analyze This Stock", use_container_width=True):
                         avg_vol = float(avg_vol_val) if not pd.isna(avg_vol_val) and avg_vol_val > 0 else 1.0
                         vol_ratio = float(df['Volume'].iloc[-1] / avg_vol)
                         
-                        # Bollinger Bands with NaN safety
                         std_20_val = close.rolling(20).std().iloc[-1]
                         std_20 = float(std_20_val) if not pd.isna(std_20_val) else 0.0
                         
@@ -269,4 +292,4 @@ if st.button("📊 Analyze This Stock", use_container_width=True):
             except Exception as e:
                 st.error(f"Software me ek choti error aayi hai: {e}")
 
-st.caption("Disclaimer: Yeh tool sirf sikhne (Educational Purposes) ke liye hai. Investment se pehle apni research zaroor karein (Do your own research before investing).")
+st.caption("Disclaimer: Yeh tool sirf sikhne (educational purposes) ke liye hai. Investment se pehle apni research zaroor karein (Do your own research before investing).")
