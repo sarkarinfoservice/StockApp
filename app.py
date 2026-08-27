@@ -60,8 +60,7 @@ if st.button("🚀 Find Trending Stocks", use_container_width=True):
             current_macd = float(macd.iloc[-1])
             current_signal = float(macd_signal.iloc[-1])
             
-            # 🚀 CONDITION FOR TRENDING STOCK: 
-            # Price upar ho + MACD bullish ho + RSI safe zone (40-70) me ho
+            # 🚀 CONDITION FOR TRENDING STOCK
             if (current_price > dma20) and (current_macd > current_signal) and (40 <= rsi <= 70):
                 trending_stocks.append({
                     "Symbol": stock.replace(".NS", ""),
@@ -120,24 +119,24 @@ if st.button("📊 Analyze This Stock", use_container_width=True):
         if trading_style == "Intraday (Same Day) & BTST":
             dl_period, dl_interval = "5d", "15m"
             ma1, ma2, ma3 = 9, 21, 50
-            t1, t2, t3 = 1.01, 1.02, 1.03  # 1%, 2%, 3% Targets
-            sl_pct = 0.99  # 1% Stoploss
+            t1, t2, t3 = 1.01, 1.02, 1.03
+            sl_pct = 0.99
             tf_label = "15-Min"
             supp_window = 20
             hl_label = "5-Day"
         elif trading_style == "Long Term (1-5 Years)":
             dl_period, dl_interval = "5y", "1wk"
             ma1, ma2, ma3 = 20, 50, 200
-            t1, t2, t3 = 1.50, 2.00, 3.00  # 50%, 100%, 200% Targets
-            sl_pct = 0.85  # 15% Stoploss
+            t1, t2, t3 = 1.50, 2.00, 3.00
+            sl_pct = 0.85
             tf_label = "Weekly"
             supp_window = 52
             hl_label = "5-Year"
         else:  # Swing (Default)
             dl_period, dl_interval = "1y", "1d"
             ma1, ma2, ma3 = 20, 50, 200
-            t1, t2, t3 = 1.10, 1.15, 1.20  # 10%, 15%, 20% Targets
-            sl_pct = 0.95  # 5% Stoploss
+            t1, t2, t3 = 1.10, 1.15, 1.20
+            sl_pct = 0.95
             tf_label = "Daily"
             supp_window = 30
             hl_label = "52-Week"
@@ -178,7 +177,6 @@ if st.button("📊 Analyze This Stock", use_container_width=True):
                         rsi_status = "Oversold 🟢"
                     else:
                         rsi_status = "Neutral 🟡"
-
                     # MACD Calculation
                     ema12 = close.ewm(span=12, adjust=False).mean()
                     ema26 = close.ewm(span=26, adjust=False).mean()
@@ -313,11 +311,7 @@ if st.button("📊 Analyze This Stock", use_container_width=True):
                         st.write(f"**Stop-Loss:** ₹{stop_loss:.2f}")
                         
                         with st.expander("💡 Iska kya matlab hai?"):
-                            st.info("""
-                            **Buy Zone:** Safe range jahan tak stock ko buying ke liye consider kiya ja sakta hai.\n
-                            **Strong Buy:** Support level ke paas sasta price jahan risk sabse kam hota hai.\n
-                            **Stop-Loss:** Bada nuksan rokne ke liye is level par exit kar lena chahiye.
-                            """)
+                            st.info("Buy Zone safe buying range hai. Stop-Loss par nuksan rokne ke liye exit kar lein.")
                         
                         st.markdown("### 🎯 Targets")
                         st.write(f"**Target 1 ({(t1-1)*100:.0f}%):** ₹{target_a:.2f}")
@@ -344,13 +338,8 @@ if st.button("📊 Analyze This Stock", use_container_width=True):
                         st.write(f"**Resistance:** ₹{resistance:.2f}")
                         
                         with st.expander("💡 Technicals kya batate hain?"):
-                            macd_desc = "**MACD Bullish 🟢:** Buying momentum hai, stock upar ja sakta hai." if is_macd_bullish else "**MACD Bearish 🔴:** Selling pressure hai, stock niche gir sakta hai."
-                            st.info(f"""
-                            **RSI:** 70 ke upar gaya matlab stock mahenga (Overbought) hai. 30 ke niche gaya matlab sasta (Oversold) hai.\n
-                            {macd_desc}\n
-                            **Support:** Lower level jahan se price niche girna band hota hai.\n
-                            **Resistance:** Upper level jahan se price takra kar rukta hai.
-                            """)
+                            macd_desc = "**MACD Bullish 🟢:** Buying momentum hai." if is_macd_bullish else "**MACD Bearish 🔴:** Selling pressure hai."
+                            st.info(f"**RSI:** 70+ (Overbought/Mahenga), 30- (Oversold/Sasta).\n{macd_desc}\n**Support:** Girne se rokne wala level.\n**Resistance:** Upar jane se rokne wala level.")
                         
                         st.markdown("### 📈 Moving Averages")
                         st.write(f"**{ma1} EMA:** ₹{ema1:.2f} | **{ma1} SMA:** ₹{sma1:.2f}")
@@ -358,24 +347,23 @@ if st.button("📊 Analyze This Stock", use_container_width=True):
                         st.write(f"**{ma3} SMA:** ₹{sma3:.2f}")
                         
                         with st.expander("💡 Averages ka kya kaam hai?"):
-                            st.info(f"Is mode mein system automatically {ma1}, {ma2}, aur {ma3} period ke averages use kar raha hai. Current price agar Averages ke UPAR ho, toh stock strong Uptrend mein maana jata hai.")
+                            st.info("Current price agar Averages ke UPAR ho, toh stock strong Uptrend mein maana jata hai.")
 
                         st.markdown("### 🌀 Bollinger Bands")
                         st.write(f"**Upper Band:** ₹{bb_upper:.2f}")
                         st.write(f"**Lower Band:** ₹{bb_lower:.2f}")
                         
                         with st.expander("💡 Bollinger Bands ka matlab?"):
-                            st.info("""
-                            **Lower Band:** Price iske paas ho toh stock bahut sasta (Oversold) hai.\n
-                            **Upper Band:** Price iske paas ho toh stock mahenga (Overbought) hai.
-                            """)
+                            st.info("**Lower Band:** Price iske paas ho toh sasta (Oversold) hai.\n**Upper Band:** Price iske paas ho toh mahenga (Overbought) hai.")
 
-                    if investment > 0 and purchase_price == 0:
-                        st.divider()
-                        shares = int(investment // current_price)
-                        actual_inv = shares * current_price
-                        st.markdown("### 💰 Investment Plan")
-                        st.success(f"Capital: **₹{investment:.2f}** | Shares: **{shares}** | Used: **₹{actual_inv:.2f}** | Exp. Profit (T1): **₹{(target_a - current_price) * shares:.2f}**")
+                            if investment > 0 and purchase_price == 0:
+                                st.divider()
+                                shares = int(investment // current_price)
+                                actual_inv = shares * current_price
+                                st.markdown("### 💰 Investment Plan")
+                                st.success(f"Capital: **₹{investment:.2f}** | Shares: **{shares}** | Used: **₹{actual_inv:.2f}** | Exp. Profit (T1): **₹{(target_a - current_price) * shares:.2f}**")
 
             except Exception as e:
-                st.error(f
+                st.error(f"Error aayi: {e}")
+
+st.caption("Disclaimer: Yeh tool sirf sikhne (educational purposes) ke liye hai. Investment se pehle apni research zaroor karein.")
