@@ -109,6 +109,15 @@ if st.button("📊 Analyze This Stock", use_container_width=True):
                     ema1 = float(close.ewm(span=ma1, adjust=False).mean().iloc[-1])
                     ema2 = float(close.ewm(span=ma2, adjust=False).mean().iloc[-1])
 
+                    # Smart VWAP Calculation (Only for Intraday)
+                    if trading_style == "Intraday (Same Day) & BTST":
+                        df['TP'] = (df['High'] + df['Low'] + df['Close']) / 3
+                        df['TP_V'] = df['TP'] * df['Volume']
+                        df['Cum_V'] = df.groupby(df.index.date)['Volume'].cumsum()
+                        df['Cum_TP_V'] = df.groupby(df.index.date)['TP_V'].cumsum()
+                        df['VWAP'] = df['Cum_TP_V'] / df['Cum_V']
+                        vwap = float(df['VWAP'].iloc[-1])
+
                     delta = close.diff()
                     gain = delta.clip(lower=0).ewm(com=13, adjust=False).mean().iloc[-1]
                     loss = (-1 * delta.clip(upper=0)).ewm(com=13, adjust=False).mean().iloc[-1]
@@ -140,6 +149,7 @@ if st.button("📊 Analyze This Stock", use_container_width=True):
                     elif c_price < sma2 and sma2 < sma3: trend_status, trend_reason = "DOWNTREND 📉", f"Price {ma2} & {ma3} SMA ke niche hai."
                     else: trend_status, trend_reason = "SIDEWAYS ↔️", "Price range bound hai."
 
+                    # Signal Logic
                     if "UPTREND" in trend_status and (ema1 > ema2) and is_macd_bullish and (40 <= rsi <= 70):
                         s_box, s_title, s_msg = st.success, "🟢 FRESH BUY", f"{trend_reason} EMA & MACD Bullish hain."
                     elif rsi < 35 or c_price <= bb_lower:
@@ -186,7 +196,15 @@ if st.button("📊 Analyze This Stock", use_container_width=True):
                         
                         st.markdown("### 📈 Averages")
                         st.write(f"**{ma1} EMA:** ₹{ema1:.2f} | **{ma2} EMA:** ₹{ema2:.2f}\n**{ma3} SMA:** ₹{sma3:.2f}")
-                        with st.expander("💡 Averages ka kya kaam hai?"): st.info(f"Is mode me automatically {ma1}, {ma2}, aur {ma3} period use ho raha hai. Price inke upar ho toh trend strong hota hai.")
+                        
+                        # Sirf Intraday mein VWAP dikhega
+                        if trading_style == "Intraday (Same Day) & BTST":
+                            vwap_status = "Bullish 🟢" if c_price > vwap else "Bearish 🔴"
+                            st.write(f"**VWAP (Today):** ₹{vwap:.2f} ({vwap_status})")
+                        
+                        with st.expander("💡 Averages ka kya kaam hai?"): 
+                            vwap_desc = "\n**VWAP:** Intraday ka sabse bada indicator. Price iske upar ho toh tezi (Bullish), niche ho toh mandi (Bearish)." if trading_style == "Intraday (Same Day) & BTST" else ""
+                            st.info(f"Is mode mein system automatically {ma1}, {ma2}, aur {ma3} period ke averages use kar raha hai. Current price agar Averages ke UPAR ho, toh stock strong Uptrend mein maana jata hai.{vwap_desc}")
                         
                         st.markdown("### 🌀 Bollinger Bands")
                         st.write(f"**Upper:** ₹{bb_upper:.2f} | **Lower:** ₹{bb_lower:.2f}")
