@@ -11,9 +11,17 @@ st.markdown("Advanced Technical Analysis, Market Scanner, Buy/Sell Signals & Beg
 # --- SCANNER SECTION ---
 st.markdown("### 🔍 Smart Market Scanner")
 if st.button("🚀 Find Trending Stocks", use_container_width=True):
-    scan_list = ["RELIANCE.NS", "TATAMOTORS.NS", "SBIN.NS", "HDFCBANK.NS", "ZOMATO.NS", 
-                 "IRFC.NS", "HAL.NS", "SUZLON.NS", "TCS.NS", "INFY.NS", 
-                 "ITC.NS", "ICICIBANK.NS", "BHARTIARTL.NS", "BAJFINANCE.NS", "LT.NS"]
+    # Nayi Badi List (40 Top Stocks)
+    scan_list = [
+        "RELIANCE.NS", "TATAMOTORS.NS", "SBIN.NS", "HDFCBANK.NS", "ZOMATO.NS", 
+        "IRFC.NS", "HAL.NS", "SUZLON.NS", "TCS.NS", "INFY.NS", "ITC.NS", 
+        "ICICIBANK.NS", "BHARTIARTL.NS", "BAJFINANCE.NS", "LT.NS", "M&M.NS", 
+        "NTPC.NS", "TATASTEEL.NS", "BHEL.NS", "BEL.NS", "ADANIPORTS.NS",
+        "ASIANPAINT.NS", "AXISBANK.NS", "BAJAJ-AUTO.NS", "CIPLA.NS", "COALINDIA.NS",
+        "EICHERMOT.NS", "HINDALCO.NS", "INDUSINDBK.NS", "KOTAKBANK.NS", "MARUTI.NS",
+        "ONGC.NS", "POWERGRID.NS", "SUNPHARMA.NS", "TATACONSUM.NS", "TITAN.NS",
+        "WIPRO.NS", "JIOFIN.NS", "DLF.NS", "TVSMOTOR.NS"
+    ]
     trending_stocks = []
     my_bar = st.progress(0, text="Market scan shuru ho raha hai...")
     
@@ -40,6 +48,7 @@ if st.button("🚀 Find Trending Stocks", use_container_width=True):
             macd = ema12 - ema26
             macd_sig = macd.ewm(span=9, adjust=False).mean()
             
+            # Strict Buy Rules
             if (c_price > dma20) and (float(macd.iloc[-1]) > float(macd_sig.iloc[-1])) and (40 <= rsi <= 70):
                 trending_stocks.append({"Symbol": stock.replace(".NS", ""), "Price (₹)": round(c_price, 2), "RSI": round(rsi, 1), "Trend": "Bullish 🟢"})
         except:
