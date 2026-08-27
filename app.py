@@ -11,7 +11,6 @@ st.markdown("Advanced Technical Analysis, Market Scanner, Buy/Sell Signals & Beg
 # --- SCANNER SECTION ---
 st.markdown("### 🔍 Smart Market Scanner")
 if st.button("🚀 Find Trending Stocks", use_container_width=True):
-    # Nayi Badi List (40 Top Stocks)
     scan_list = [
         "RELIANCE.NS", "TATAMOTORS.NS", "SBIN.NS", "HDFCBANK.NS", "ZOMATO.NS", 
         "IRFC.NS", "HAL.NS", "SUZLON.NS", "TCS.NS", "INFY.NS", "ITC.NS", 
@@ -48,7 +47,6 @@ if st.button("🚀 Find Trending Stocks", use_container_width=True):
             macd = ema12 - ema26
             macd_sig = macd.ewm(span=9, adjust=False).mean()
             
-            # Strict Buy Rules
             if (c_price > dma20) and (float(macd.iloc[-1]) > float(macd_sig.iloc[-1])) and (40 <= rsi <= 70):
                 trending_stocks.append({"Symbol": stock.replace(".NS", ""), "Price (₹)": round(c_price, 2), "RSI": round(rsi, 1), "Trend": "Bullish 🟢"})
         except:
@@ -171,17 +169,28 @@ if st.button("📊 Analyze This Stock", use_container_width=True):
                     with cl:
                         st.markdown(f"### 📊 Action Zones ({tf_label})")
                         st.write(f"**Buy Zone:** ₹{buy_zone:.2f} - ₹{c_price:.2f}\n**Strong Buy:** ₹{strong_buy:.2f}\n**Stop-Loss:** ₹{stop_loss:.2f}")
+                        with st.expander("💡 Iska kya matlab hai?"): st.info("Buy Zone safe buying range hai. Strong buy sasta level hai. Stop-Loss par nuksan rokne ke liye exit kar lein.")
+                        
                         st.markdown("### 🎯 Targets")
                         st.write(f"**T1:** ₹{ta:.2f} | **T2:** ₹{tb:.2f} | **T3:** ₹{tc:.2f}")
+                        with st.expander("💡 Target ka matlab?"): st.info("Kharidne ke baad in levels par aane par aap apna profit book (sell) kar sakte hain.")
+                        
                         st.markdown(f"### 🏆 {hl_label} Range")
                         st.write(f"**High:** ₹{p_high:.2f} | **Low:** ₹{p_low:.2f}")
+                        with st.expander("💡 Range ka matlab?"): st.info("Yeh batata hai ki stock apne pichle highest price se abhi kitna sasta (discounted) mil raha hai.")
+                    
                     with cr:
                         st.markdown("### 📉 Technicals")
                         st.write(f"**RSI:** {rsi:.1f} ({rsi_status})\n**MACD:** {'Bullish 🟢' if is_macd_bullish else 'Bearish 🔴'}\n**Support:** ₹{support:.2f} | **Resistance:** ₹{resistance:.2f}")
+                        with st.expander("💡 Technicals kya batate hain?"): st.info(f"**RSI:** 70+ (Mahenga/Overbought), 30- (Sasta/Oversold).\n**MACD:** {'Buying momentum hai 🟢' if is_macd_bullish else 'Selling pressure hai 🔴'}\n**Support:** Girne se rokne wala level.\n**Resistance:** Upar jane se rokne wala level.")
+                        
                         st.markdown("### 📈 Averages")
                         st.write(f"**{ma1} EMA:** ₹{ema1:.2f} | **{ma2} EMA:** ₹{ema2:.2f}\n**{ma3} SMA:** ₹{sma3:.2f}")
+                        with st.expander("💡 Averages ka kya kaam hai?"): st.info(f"Is mode me automatically {ma1}, {ma2}, aur {ma3} period use ho raha hai. Price inke upar ho toh trend strong hota hai.")
+                        
                         st.markdown("### 🌀 Bollinger Bands")
                         st.write(f"**Upper:** ₹{bb_upper:.2f} | **Lower:** ₹{bb_lower:.2f}")
+                        with st.expander("💡 Bollinger Bands ka matlab?"): st.info("**Lower Band:** Price iske paas ho toh sasta (Oversold) hai.\n**Upper Band:** Price iske paas ho toh mahenga (Overbought) hai.")
 
                     if investment > 0 and purchase_price == 0:
                         shares = int(investment // c_price)
