@@ -7,18 +7,99 @@ import numpy as np
 st.set_page_config(page_title="Pro Stock Technical Analyzer", page_icon="📈", layout="centered")
 
 st.title("📈 Pro Stock Technical Analyzer")
-st.markdown("Advanced Technical Analysis, Buy/Sell Signals, Portfolio Tracker & Beginner Guide.")
+st.markdown("Advanced Technical Analysis, Market Scanner, Buy/Sell Signals & Beginner Guide.")
+
+# ==========================================
+# 🔍 SMART MARKET SCANNER SECTION
+# ==========================================
+st.markdown("### 🔍 Smart Market Scanner")
+st.write("Janiye aaj kin popular stocks mein tezi (Uptrend) ban rahi hai.")
+
+if st.button("🚀 Find Trending Stocks", use_container_width=True):
+    # Top 20 Popular Indian Stocks for Scanning
+    scan_list = [
+        "RELIANCE.NS", "TATAMOTORS.NS", "SBIN.NS", "HDFCBANK.NS", "ZOMATO.NS", 
+        "IRFC.NS", "HAL.NS", "SUZLON.NS", "TCS.NS", "INFY.NS", 
+        "ITC.NS", "ICICIBANK.NS", "BHARTIARTL.NS", "BAJFINANCE.NS", "LT.NS", 
+        "M&M.NS", "NTPC.NS", "TATASTEEL.NS", "BHEL.NS", "BEL.NS"
+    ]
+    
+    trending_stocks = []
+    
+    # Progress bar for PRO feel
+    my_bar = st.progress(0, text="Market scan shuru ho raha hai...")
+    
+    for i, stock in enumerate(scan_list):
+        my_bar.progress((i + 1) / len(scan_list), text=f"Scanning {stock.replace('.NS', '')}...")
+        try:
+            # Fetch 6 months data for quick scanning
+            df_scan = yf.download(stock, period="6mo", progress=False)
+            if df_scan.empty: continue
+            
+            if isinstance(df_scan.columns, pd.MultiIndex):
+                df_scan.columns = df_scan.columns.get_level_values(0)
+                
+            close_scan = df_scan['Close']
+            current_price = float(close_scan.iloc[-1])
+            
+            # Moving Average (20 DMA)
+            dma20 = float(close_scan.rolling(20).mean().iloc[-1])
+            
+            # RSI
+            delta = close_scan.diff()
+            gain = delta.clip(lower=0).ewm(com=13, adjust=False).mean()
+            loss = (-1 * delta.clip(upper=0)).ewm(com=13, adjust=False).mean()
+            rs = gain / loss
+            rsi = float((100 - (100 / (1 + rs))).iloc[-1])
+            
+            # MACD
+            ema12 = close_scan.ewm(span=12, adjust=False).mean()
+            ema26 = close_scan.ewm(span=26, adjust=False).mean()
+            macd = ema12 - ema26
+            macd_signal = macd.ewm(span=9, adjust=False).mean()
+            current_macd = float(macd.iloc[-1])
+            current_signal = float(macd_signal.iloc[-1])
+            
+            # 🚀 CONDITION FOR TRENDING STOCK: 
+            # Price upar ho + MACD bullish ho + RSI safe zone (40-70) me ho
+            if (current_price > dma20) and (current_macd > current_signal) and (40 <= rsi <= 70):
+                trending_stocks.append({
+                    "Symbol": stock.replace(".NS", ""),
+                    "Price (₹)": round(current_price, 2),
+                    "RSI": round(rsi, 1),
+                    "Trend": "Bullish 🟢"
+                })
+        except Exception as e:
+            pass # Ignore errors for individual stocks during bulk scan
+            
+    my_bar.empty() # Hide progress bar when done
+    
+    # Show Results
+    if trending_stocks:
+        st.success(f"🎉 Great! {len(trending_stocks)} Trending Stocks mile hain.")
+        df_results = pd.DataFrame(trending_stocks)
+        # Set Symbol as index so it looks clean in table
+        st.dataframe(df_results.set_index("Symbol"), use_container_width=True)
+        st.info("💡 **PRO TIP:** Upar list me se koi bhi Symbol copy karein aur niche wale box me daal kar uska poora analysis (Target & Stoploss) check karein!")
+    else:
+        st.warning("🔴 Aaj in top stocks mein koi clear buy signal nahi mila. Market shant ya downtrend mein ho sakti hai.")
+
+st.divider()
+
+# ==========================================
+# 📊 MAIN STOCK ANALYZER SECTION
+# ==========================================
+st.markdown("### 🔍 Full Stock Analysis")
 
 # --- USER INPUTS ---
 trading_style = st.selectbox("Trading Style Select Karein:", 
-                             ["Swing (Weeks to Months)", "Intraday (1-2 Days)", "Long Term (1-5 Years)"])
+                             ["Swing (Weeks to Months)", "Intraday (Same Day) & BTST", "Long Term (1-5 Years)"])
 
 col1, col2 = st.columns(2)
 with col1:
     exchange = st.selectbox("Exchange", ["NSE", "BSE"])
 with col2:
-    # Yahan value="ASTRAMICRO" ko hata kar value="" kar diya gaya hai
-    raw_symbol = st.text_input("Stock Symbol (e.g., RELIANCE)", value="").strip().upper()
+    raw_symbol = st.text_input("Stock Symbol (e.g., ZOMATO)", value="").strip().upper()
 
 col3, col4 = st.columns(2)
 with col3:
@@ -26,9 +107,9 @@ with col3:
 with col4:
     purchase_price = st.number_input("Apna Buy Price Dalein (₹) [Optional]", min_value=0.0, value=0.0, step=10.0)
 
-if st.button("🚀 Analyze Stock", use_container_width=True):
+if st.button("📊 Analyze This Stock", use_container_width=True):
     if not raw_symbol:
-        st.error("Kripya Stock Symbol dalein!")
+        st.error("Kripya koi ek Stock Symbol dalein!")
     else:
         # Format symbol for yfinance
         symbol = raw_symbol
@@ -36,7 +117,7 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
             symbol += ".NS" if exchange == "NSE" else ".BO"
 
         # --- DYNAMIC SETTINGS BASED ON TRADING STYLE ---
-        if trading_style == "Intraday (1-2 Days)":
+        if trading_style == "Intraday (Same Day) & BTST":
             dl_period, dl_interval = "5d", "15m"
             ma1, ma2, ma3 = 9, 21, 50
             t1, t2, t3 = 1.01, 1.02, 1.03  # 1%, 2%, 3% Targets
@@ -297,6 +378,4 @@ if st.button("🚀 Analyze Stock", use_container_width=True):
                         st.success(f"Capital: **₹{investment:.2f}** | Shares: **{shares}** | Used: **₹{actual_inv:.2f}** | Exp. Profit (T1): **₹{(target_a - current_price) * shares:.2f}**")
 
             except Exception as e:
-                st.error(f"Error aayi: {e}")
-
-st.caption("Disclaimer: Yeh tool sirf sikhne (educational purposes) ke liye hai. Investment se pehle apni research zaroor karein.")
+                st.error(f
