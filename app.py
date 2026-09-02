@@ -93,7 +93,7 @@ if st.button("🚀 Find Trending Stocks", use_container_width=True):
     if trending_stocks:
         df_result = pd.DataFrame(trending_stocks)
         
-        # 🌟 Automatically find the Best Top Pick based on optimal RSI (closest to 55-60 sweet spot)
+        # 🌟 Automatically find the Best Top Pick based on optimal RSI
         df_result['RSI_Diff'] = abs(df_result['RSI'] - 57)
         top_pick = df_result.sort_values(by='RSI_Diff').iloc[0]
         df_result.drop(columns=['RSI_Diff'], inplace=True)
@@ -101,8 +101,12 @@ if st.button("🚀 Find Trending Stocks", use_container_width=True):
         st.success(f"🎉 Great! {selected_sector} se milakar {len(trending_stocks)} Actionable Buy Stocks mile hain.")
         
         # Highlight Top Pick Banner
-        st.markdown(f"### ⭐ Top Recommended Pick: **{top_pick['Symbol']}**")
-        st.info(f"💡 Is stock ka momentum sabse behtareen hai — Price: **₹{top_pick['Price (₹)]}** | RSI: **{top_pick['RSI']}** (Niche paste karke turant analysis karein!)")
+        top_symbol = top_pick['Symbol']
+        top_price = top_pick['Price (₹)']
+        top_rsi = top_pick['RSI']
+        
+        st.markdown(f"### ⭐ Top Recommended Pick: **{top_symbol}**")
+        st.info(f"💡 Is stock ka momentum sabse behtareen hai — Price: **₹{top_price}** | RSI: **{top_rsi}** (Niche paste karke turant analysis karein!)")
         
         st.dataframe(df_result.set_index("Symbol"), use_container_width=True)
     else:
