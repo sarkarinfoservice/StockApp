@@ -79,7 +79,7 @@ if st.button("🚀 Find Trending Stocks", use_container_width=True):
             macd_sig = macd.ewm(span=9, adjust=False).mean()
             
             # Actionable Buy Criteria Filter
-            if (current_price > sma50) and (ema20 > ema50) and (float(macd.iloc[-1]) > float(macd_sig.iloc[-1])) and (45 <= rsi <= 70):
+            if (current_price > sma50) and (ema20 > ema50) and (float(macd.iloc[-1]) > float(macd_sig.iloc[-1])) and (40 <= rsi <= 72):
                 trending_stocks.append({
                     "Symbol": stock.replace(".NS", ""),
                     "Price (₹)": round(current_price, 2),
@@ -92,15 +92,12 @@ if st.button("🚀 Find Trending Stocks", use_container_width=True):
     my_bar.empty()
     if trending_stocks:
         df_result = pd.DataFrame(trending_stocks)
-        
-        # 🌟 Automatically find the Best Top Pick based on optimal RSI
-        df_result['RSI_Diff'] = abs(df_result['RSI'] - 57)
+        df_result['RSI_Diff'] = abs(df_result['RSI'] - 55)
         top_pick = df_result.sort_values(by='RSI_Diff').iloc[0]
         df_result.drop(columns=['RSI_Diff'], inplace=True)
         
         st.success(f"🎉 Great! {selected_sector} se milakar {len(trending_stocks)} Actionable Buy Stocks mile hain.")
         
-        # Highlight Top Pick Banner
         top_symbol = top_pick['Symbol']
         top_price = top_pick['Price (₹)']
         top_rsi = top_pick['RSI']
@@ -122,7 +119,7 @@ trading_style = st.selectbox("Trading Style Select Karein:", ["Swing (Weeks to M
 
 c1, c2 = st.columns(2)
 with c1: exchange = st.selectbox("Exchange", ["NSE", "BSE"])
-with c2: raw_symbol = st.text_input("Stock Symbol (e.g., ZOMATO, TCS)", value="").strip().upper()
+with c2: raw_symbol = st.text_input("Stock Symbol (e.g., ZOMATO, TCS, BPCL)", value="").strip().upper()
 
 c3, c4 = st.columns(2)
 with c3: investment = st.number_input("New Investment (₹) [Optional]", min_value=0.0, step=1000.0)
@@ -228,14 +225,15 @@ if st.button("📊 Analyze This Stock", use_container_width=True):
                         else: 
                             trend_status, trend_reason = "SIDEWAYS ↔️", "Price range bound hai."
 
-                        if "UPTREND" in trend_status and (ema1 > ema2) and is_macd_bullish and (40 <= rsi <= 70):
-                            s_box, s_title, s_msg = st.success, "🟢 FRESH BUY", f"{trend_reason} EMA & MACD Bullish hain."
-                        elif rsi < 35 or current_price <= bb_lower:
-                            s_box, s_title, s_msg = st.info, "🟡 ACCUMULATE (Oversold)", "Stock lower band ya support par hai."
-                        elif current_price >= bb_upper or rsi > 70:
-                            s_box, s_title, s_msg = st.warning, "🔴 WAIT (Overbought)", "Stock Overbought hai, dip ka wait karein."
+                        # Flexible Smart Signal Generator
+                        if "UPTREND" in trend_status and (40 <= rsi <= 72):
+                            s_box, s_title, s_msg = st.success, "🟢 FRESH BUY / MOMENTUM", f"{trend_reason} Stock mein tezi ban rahi hai."
+                        elif rsi < 38 or current_price <= bb_lower * 1.01:
+                            s_box, s_title, s_msg = st.info, "🟡 ACCUMULATE (Oversold / Support)", "Stock support ya lower band ke paas sasta mil raha hai."
+                        elif current_price >= bb_upper * 0.99 or rsi > 70:
+                            s_box, s_title, s_msg = st.warning, "🔴 WAIT (Overbought)", "Stock mahenga ho chuka hai, thoda correction ka wait karein."
                         else:
-                            s_box, s_title, s_msg = st.error, "🔴 NO SIGNAL", "Abhi clear buy signal nahi hai."
+                            s_box, s_title, s_msg = st.info, "🟡 RANGE BOUND / HOLD", "Stock abhi sideways move kar raha hai, breakout ka wait karein."
 
                         st.subheader(f"Results for {symbol} ({trading_style})")
                         if purchase_price == 0: 
