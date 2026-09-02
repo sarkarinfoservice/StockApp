@@ -9,33 +9,33 @@ st.title("📈 Pro Stock Technical Analyzer")
 st.markdown("Advanced Technical Analysis, Market Scanner, Sector Filtering, Buy/Sell Signals & Beginner Guide.")
 
 # ==========================================
-# 🔍 SMART MARKET SCANNER SECTION (WITH SECTOR FILTER & TOP PICK)
+# 🔍 SMART MARKET SCANNER SECTION (WITH NIFTY 50 EXPANDED LIST)
 # ==========================================
 st.markdown("### 🔍 Smart Market Scanner")
 st.write("Janiye aaj kis sector aur stock mein sabse strong tezi (Uptrend & Fresh Buy Signal) ban rahi hai.")
 
-# Sector dictionary for filtering
+# Comprehensive Nifty 50 & Popular Stock Dictionary
 sector_dict = {
-    "All Sectors": [
-        "TCS.NS", "INFY.NS", "WIPRO.NS", "HCLTECH.NS", "TECHM.NS",
-        "HDFCBANK.NS", "ICICIBANK.NS", "SBIN.NS", "AXISBANK.NS", "KOTAKBANK.NS", 
-        "INDUSINDBK.NS", "BAJFINANCE.NS", "JIOFIN.NS", "SBILIFE.NS", "CHOLAFIN.NS",
-        "TATAMOTORS.NS", "M&M.NS", "MARUTI.NS", "BAJAJ-AUTO.NS", "TVSMOTOR.NS", 
-        "EICHERMOT.NS", "HEROMOTOCO.NS", "SUNPHARMA.NS", "CIPLA.NS", "DRREDDY.NS", 
-        "DIVISLAB.NS", "APOLLOHOSP.NS", "RELIANCE.NS", "ONGC.NS", "POWERGRID.NS", 
-        "NTPC.NS", "BPCL.NS", "TATAPOWER.NS", "ITC.NS", "HINDUNILVR.NS", 
-        "NESTLEIND.NS", "BRITANNIA.NS", "TATACONSUM.NS", "TITAN.NS", "ASIANPAINT.NS", 
-        "ZOMATO.NS", "TATASTEEL.NS", "HINDALCO.NS", "JSWSTEEL.NS", "COALINDIA.NS",
-        "LT.NS", "ADANIPORTS.NS", "HAL.NS", "BEL.NS", "IRFC.NS", "SUZLON.NS", "BHEL.NS", "DLF.NS"
+    "All Sectors (Nifty 50 Focus)": [
+        "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "INFY.NS", "ICICIBANK.NS", 
+        "HINDUNILVR.NS", "ITC.NS", "SBIN.NS", "BHARTIARTL.NS", "LTIM.NS",
+        "BAJFINANCE.NS", "KOTAKBANK.NS", "LT.NS", "AXISBANK.NS", "ASIANPAINT.NS",
+        "MARUTI.NS", "SUNPHARMA.NS", "TITAN.NS", "BAJAJ-AUTO.NS", "TATASTEEL.NS",
+        "WIPRO.NS", "HCLTECH.NS", "TECHM.NS", "NTPC.NS", "POWERGRID.NS",
+        "ONGC.NS", "M&M.NS", "TATAMOTORS.NS", "ADANIENT.NS", "ADANIPORTS.NS",
+        "COALINDIA.NS", "GRASIM.NS", "JSWSTEEL.NS", "HINDALCO.NS", "DIVISLAB.NS",
+        "CIPLA.NS", "DRREDDY.NS", "BPCL.NS", "SBILIFE.NS", "BAJAJFINSV.NS",
+        "APOLLOHOSP.NS", "BRITANNIA.NS", "NESTLEIND.NS", "TATACONSUM.NS", "EICHERMOT.NS",
+        "HEROMOTOCO.NS", "INDUSINDBK.NS", "ZOMATO.NS", "JIOFIN.NS", "CHOLAFIN.NS"
     ],
-    "IT Sector": ["TCS.NS", "INFY.NS", "WIPRO.NS", "HCLTECH.NS", "TECHM.NS"],
-    "Banking & Finance": ["HDFCBANK.NS", "ICICIBANK.NS", "SBIN.NS", "AXISBANK.NS", "KOTAKBANK.NS", "INDUSINDBK.NS", "BAJFINANCE.NS", "JIOFIN.NS", "SBILIFE.NS", "CHOLAFIN.NS"],
+    "IT Sector": ["TCS.NS", "INFY.NS", "WIPRO.NS", "HCLTECH.NS", "TECHM.NS", "LTIM.NS"],
+    "Banking & Finance": ["HDFCBANK.NS", "ICICIBANK.NS", "SBIN.NS", "AXISBANK.NS", "KOTAKBANK.NS", "INDUSINDBK.NS", "BAJFINANCE.NS", "BAJAJFINSV.NS", "JIOFIN.NS", "CHOLAFIN.NS"],
     "Auto & Ancillaries": ["TATAMOTORS.NS", "M&M.NS", "MARUTI.NS", "BAJAJ-AUTO.NS", "TVSMOTOR.NS", "EICHERMOT.NS", "HEROMOTOCO.NS"],
     "Pharma & Healthcare": ["SUNPHARMA.NS", "CIPLA.NS", "DRREDDY.NS", "DIVISLAB.NS", "APOLLOHOSP.NS"],
     "Energy, Power & Oil": ["RELIANCE.NS", "ONGC.NS", "POWERGRID.NS", "NTPC.NS", "BPCL.NS", "TATAPOWER.NS"],
-    "FMCG & Consumption": ["ITC.NS", "HINDUNILVR.NS", "NESTLEIND.NS", "BRITANNIA.NS", "TATACONSUM.NS", "TITAN.NS", "ASIANPAINT.NS", "ZOMATO.NS"],
+    "FMCG & Consumption": ["ITC.NS", "HINDUNILVR.NS", "NESTLEIND.NS", "BRITANNIA.NS", "TATACONSUM.NS", "TITAN.NS", "ASIANPAINT.NS", "ZOMATO.NS", "GRASIM.NS"],
     "Metals & Mining": ["TATASTEEL.NS", "HINDALCO.NS", "JSWSTEEL.NS", "COALINDIA.NS"],
-    "Infra, Defense & Capital Goods": ["LT.NS", "ADANIPORTS.NS", "HAL.NS", "BEL.NS", "IRFC.NS", "SUZLON.NS", "BHEL.NS", "DLF.NS"]
+    "Infra, Defense & Capital Goods": ["LT.NS", "ADANIPORTS.NS", "ADANIENT.NS", "HAL.NS", "BEL.NS", "IRFC.NS", "SUZLON.NS", "BHEL.NS", "DLF.NS"]
 }
 
 selected_sector = st.selectbox("Sector Filter Select Karein:", list(sector_dict.keys()))
@@ -119,7 +119,7 @@ trading_style = st.selectbox("Trading Style Select Karein:", ["Swing (Weeks to M
 
 c1, c2 = st.columns(2)
 with c1: exchange = st.selectbox("Exchange", ["NSE", "BSE"])
-with c2: raw_symbol = st.text_input("Stock Symbol (e.g., ZOMATO, TCS, BPCL)", value="").strip().upper()
+with c2: raw_symbol = st.text_input("Stock Symbol (e.g., ZOMATO, TCS, RELIANCE)", value="").strip().upper()
 
 c3, c4 = st.columns(2)
 with c3: investment = st.number_input("New Investment (₹) [Optional]", min_value=0.0, step=1000.0)
@@ -225,7 +225,6 @@ if st.button("📊 Analyze This Stock", use_container_width=True):
                         else: 
                             trend_status, trend_reason = "SIDEWAYS ↔️", "Price range bound hai."
 
-                        # Flexible Smart Signal Generator
                         if "UPTREND" in trend_status and (40 <= rsi <= 72):
                             s_box, s_title, s_msg = st.success, "🟢 FRESH BUY / MOMENTUM", f"{trend_reason} Stock mein tezi ban rahi hai."
                         elif rsi < 38 or current_price <= bb_lower * 1.01:
