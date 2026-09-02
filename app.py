@@ -6,41 +6,44 @@ import numpy as np
 st.set_page_config(page_title="Pro Stock Technical Analyzer", page_icon="📈", layout="centered")
 
 st.title("📈 Pro Stock Technical Analyzer")
-st.markdown("Advanced Technical Analysis, Market Scanner, Buy/Sell Signals & Beginner Guide.")
+st.markdown("Advanced Technical Analysis, Market Scanner, Sector Filtering, Buy/Sell Signals & Beginner Guide.")
 
 # ==========================================
-# 🔍 SMART MARKET SCANNER SECTION (ALL SECTORS)
+# 🔍 SMART MARKET SCANNER SECTION (WITH SECTOR FILTER & TOP PICK)
 # ==========================================
 st.markdown("### 🔍 Smart Market Scanner")
-st.write("Janiye aaj sabhi sectors ke popular stocks mein kahan tezi (Uptrend) ban rahi hai.")
+st.write("Janiye aaj kis sector aur stock mein sabse strong tezi (Uptrend & Fresh Buy Signal) ban rahi hai.")
 
-if st.button("🚀 Find Trending Stocks", use_container_width=True):
-    # Comprehensive Multi-Sector Scan List (50 Stocks)
-    scan_list = [
-        # --- IT Sector ---
+# Sector dictionary for filtering
+sector_dict = {
+    "All Sectors": [
         "TCS.NS", "INFY.NS", "WIPRO.NS", "HCLTECH.NS", "TECHM.NS",
-        # --- Banking & Finance ---
         "HDFCBANK.NS", "ICICIBANK.NS", "SBIN.NS", "AXISBANK.NS", "KOTAKBANK.NS", 
         "INDUSINDBK.NS", "BAJFINANCE.NS", "JIOFIN.NS", "SBILIFE.NS", "CHOLAFIN.NS",
-        # --- Auto & Ancillaries ---
         "TATAMOTORS.NS", "M&M.NS", "MARUTI.NS", "BAJAJ-AUTO.NS", "TVSMOTOR.NS", 
-        "EICHERMOT.NS", "HEROMOTOCO.NS",
-        # --- Pharma & Healthcare ---
-        "SUNPHARMA.NS", "CIPLA.NS", "DRREDDY.NS", "DIVISLAB.NS", "APOLLOHOSP.NS",
-        # --- Energy, Power & Oil ---
-        "RELIANCE.NS", "ONGC.NS", "POWERGRID.NS", "NTPC.NS", "BPCL.NS", "TATAPOWER.NS",
-        # --- FMCG & Consumption ---
-        "ITC.NS", "HINDUNILVR.NS", "NESTLEIND.NS", "BRITANNIA.NS", "TATACONSUM.NS", 
-        "TITAN.NS", "ASIANPAINT.NS", "ZOMATO.NS",
-        # --- Metals & Mining ---
-        "TATASTEEL.NS", "HINDALCO.NS", "JSWSTEEL.NS", "COALINDIA.NS",
-        # --- Infra, Defense, Railways & Capital Goods ---
-        "LT.NS", "ADANIPORTS.NS", "HAL.NS", "BEL.NS", "IRFC.NS", "SUZLON.NS", 
-        "BHEL.NS", "DLF.NS"
-    ]
-    
+        "EICHERMOT.NS", "HEROMOTOCO.NS", "SUNPHARMA.NS", "CIPLA.NS", "DRREDDY.NS", 
+        "DIVISLAB.NS", "APOLLOHOSP.NS", "RELIANCE.NS", "ONGC.NS", "POWERGRID.NS", 
+        "NTPC.NS", "BPCL.NS", "TATAPOWER.NS", "ITC.NS", "HINDUNILVR.NS", 
+        "NESTLEIND.NS", "BRITANNIA.NS", "TATACONSUM.NS", "TITAN.NS", "ASIANPAINT.NS", 
+        "ZOMATO.NS", "TATASTEEL.NS", "HINDALCO.NS", "JSWSTEEL.NS", "COALINDIA.NS",
+        "LT.NS", "ADANIPORTS.NS", "HAL.NS", "BEL.NS", "IRFC.NS", "SUZLON.NS", "BHEL.NS", "DLF.NS"
+    ],
+    "IT Sector": ["TCS.NS", "INFY.NS", "WIPRO.NS", "HCLTECH.NS", "TECHM.NS"],
+    "Banking & Finance": ["HDFCBANK.NS", "ICICIBANK.NS", "SBIN.NS", "AXISBANK.NS", "KOTAKBANK.NS", "INDUSINDBK.NS", "BAJFINANCE.NS", "JIOFIN.NS", "SBILIFE.NS", "CHOLAFIN.NS"],
+    "Auto & Ancillaries": ["TATAMOTORS.NS", "M&M.NS", "MARUTI.NS", "BAJAJ-AUTO.NS", "TVSMOTOR.NS", "EICHERMOT.NS", "HEROMOTOCO.NS"],
+    "Pharma & Healthcare": ["SUNPHARMA.NS", "CIPLA.NS", "DRREDDY.NS", "DIVISLAB.NS", "APOLLOHOSP.NS"],
+    "Energy, Power & Oil": ["RELIANCE.NS", "ONGC.NS", "POWERGRID.NS", "NTPC.NS", "BPCL.NS", "TATAPOWER.NS"],
+    "FMCG & Consumption": ["ITC.NS", "HINDUNILVR.NS", "NESTLEIND.NS", "BRITANNIA.NS", "TATACONSUM.NS", "TITAN.NS", "ASIANPAINT.NS", "ZOMATO.NS"],
+    "Metals & Mining": ["TATASTEEL.NS", "HINDALCO.NS", "JSWSTEEL.NS", "COALINDIA.NS"],
+    "Infra, Defense & Capital Goods": ["LT.NS", "ADANIPORTS.NS", "HAL.NS", "BEL.NS", "IRFC.NS", "SUZLON.NS", "BHEL.NS", "DLF.NS"]
+}
+
+selected_sector = st.selectbox("Sector Filter Select Karein:", list(sector_dict.keys()))
+
+if st.button("🚀 Find Trending Stocks", use_container_width=True):
+    scan_list = sector_dict[selected_sector]
     trending_stocks = []
-    my_bar = st.progress(0, text="Sabhi sectors ka scan shuru ho raha hai...")
+    my_bar = st.progress(0, text=f"{selected_sector} ka scan shuru ho raha hai...")
     
     for i, stock in enumerate(scan_list):
         my_bar.progress((i + 1) / len(scan_list), text=f"Scanning {stock.replace('.NS', '')}...")
@@ -51,16 +54,18 @@ if st.button("🚀 Find Trending Stocks", use_container_width=True):
             if isinstance(df_scan.columns, pd.MultiIndex):
                 df_scan.columns = df_scan.columns.get_level_values(0)
             
-            # NaN Cleaner
             df_scan.dropna(subset=['Close', 'High', 'Low'], inplace=True)
-            if df_scan.empty: continue
+            if len(df_scan) < 50: continue
             
             close_scan = df_scan['Close']
             current_price = float(close_scan.iloc[-1])
             
-            dma20_val = close_scan.rolling(20).mean().iloc[-1]
-            if pd.isna(dma20_val): continue
-            dma20 = float(dma20_val)
+            sma50_val = close_scan.rolling(50).mean().iloc[-1]
+            if pd.isna(sma50_val): continue
+            sma50 = float(sma50_val)
+            
+            ema20 = float(close_scan.ewm(span=20, adjust=False).mean().iloc[-1])
+            ema50 = float(close_scan.ewm(span=50, adjust=False).mean().iloc[-1])
             
             delta = close_scan.diff()
             gain = delta.clip(lower=0).ewm(com=13, adjust=False).mean()
@@ -73,8 +78,8 @@ if st.button("🚀 Find Trending Stocks", use_container_width=True):
             macd = ema12 - ema26
             macd_sig = macd.ewm(span=9, adjust=False).mean()
             
-            # Smart Filter Conditions
-            if (current_price > dma20) and (float(macd.iloc[-1]) > float(macd_sig.iloc[-1])) and (35 <= rsi <= 75):
+            # Actionable Buy Criteria Filter
+            if (current_price > sma50) and (ema20 > ema50) and (float(macd.iloc[-1]) > float(macd_sig.iloc[-1])) and (45 <= rsi <= 70):
                 trending_stocks.append({
                     "Symbol": stock.replace(".NS", ""),
                     "Price (₹)": round(current_price, 2),
@@ -86,11 +91,22 @@ if st.button("🚀 Find Trending Stocks", use_container_width=True):
             
     my_bar.empty()
     if trending_stocks:
-        st.success(f"🎉 Great! Sabhi sectors se milakar {len(trending_stocks)} Trending Stocks mile hain.")
-        st.dataframe(pd.DataFrame(trending_stocks).set_index("Symbol"), use_container_width=True)
-        st.info("💡 **PRO TIP:** Symbol copy karein aur niche paste karke poora analysis dekhein!")
+        df_result = pd.DataFrame(trending_stocks)
+        
+        # 🌟 Automatically find the Best Top Pick based on optimal RSI (closest to 55-60 sweet spot)
+        df_result['RSI_Diff'] = abs(df_result['RSI'] - 57)
+        top_pick = df_result.sort_values(by='RSI_Diff').iloc[0]
+        df_result.drop(columns=['RSI_Diff'], inplace=True)
+        
+        st.success(f"🎉 Great! {selected_sector} se milakar {len(trending_stocks)} Actionable Buy Stocks mile hain.")
+        
+        # Highlight Top Pick Banner
+        st.markdown(f"### ⭐ Top Recommended Pick: **{top_pick['Symbol']}**")
+        st.info(f"💡 Is stock ka momentum sabse behtareen hai — Price: **₹{top_pick['Price (₹)]}** | RSI: **{top_pick['RSI']}** (Niche paste karke turant analysis karein!)")
+        
+        st.dataframe(df_result.set_index("Symbol"), use_container_width=True)
     else:
-        st.warning("🔴 Abhi kisi bhi sector mein clear buy signal nahi mila.")
+        st.warning("🔴 Abhi is sector mein strict buy criteria match karne wale stocks nahi hain.")
 
 st.divider()
 
@@ -102,7 +118,7 @@ trading_style = st.selectbox("Trading Style Select Karein:", ["Swing (Weeks to M
 
 c1, c2 = st.columns(2)
 with c1: exchange = st.selectbox("Exchange", ["NSE", "BSE"])
-with c2: raw_symbol = st.text_input("Stock Symbol (e.g., ZOMATO)", value="").strip().upper()
+with c2: raw_symbol = st.text_input("Stock Symbol (e.g., ZOMATO, TCS)", value="").strip().upper()
 
 c3, c4 = st.columns(2)
 with c3: investment = st.number_input("New Investment (₹) [Optional]", min_value=0.0, step=1000.0)
